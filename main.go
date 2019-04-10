@@ -6,8 +6,9 @@ import (
 	"math/rand"
 	"time"
 
+	"tula_web_cup_backend/app/config"
 	"tula_web_cup_backend/app/controllers"
-	"tula_web_cup_backend/db"
+	"tula_web_cup_backend/helper"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,17 +18,50 @@ func main() {
 
 	router := gin.New()
 
-	psqlDbConnect, err := db.ConnectToPsqlDb()
+	configApp, err := config.GetConfig()
+
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	// todo: защитить ручки от неавторизованного удаления (токен доступа?)
+
+	psqlDbConnect, err := helper.ConnectToPsqlDb(configApp)
 
 	router.GET("/ping", controllers.Ping)
 
-	router.POST("/user", controllers.Users(db))
+	// todo: PUT, DELETE
+	router.POST("/users", controllers.CreateUsers(psqlDbConnect))
 
-	portStart := 9090
+	// todo: PUT, DELETE
+	router.POST("/tags", controllers.CreateTag(psqlDbConnect))
 
-	err := router.Run(fmt.Sprintf(":%d", portStart))
+	// приходит юзер, мы апдейтим базу, забираем все его картинки (много)
+	router.POST("/images/:user_token", controllers.ImagesUpdate(psqlDbConnect))
+
+	// оценить картинку image_id=int rate=float
+	router.GET("/rate", controllers.RateImage(psqlDbConnect))
+
+	// забрать все картинки (общие)
+	router.GET("/images", controllers.GetAllImages(psqlDbConnect))
+
+	// todo: забрать все картинки только юзера
+
+	router.GET("/images", controllers.ImagesUpdate(psqlDbConnect))
+
+	router.GET("/images/:tag_name", controllers.GetAllImagesByTag(psqlDbConnect))
+
+	// todo: сортировка по возрастанию
+
+	// name, rate
+	router.GET("/images/:sort_param", controllers.GetAllSortedImages(psqlDbConnect))
+
+	portStart := configApp.PortStart
+
+	err = router.Run(fmt.Sprintf(":%d", portStart))
 
 	if err != nil {
-		log.Print(err)
+		log.Println(err)
 	}
 }

@@ -1,0 +1,7 @@
+port_start: 9090
+
+database_host: "localhost"
+database_port: 5432
+database_user: "postgres"
+database_pass: "postgres"
+database_name: "postgres"

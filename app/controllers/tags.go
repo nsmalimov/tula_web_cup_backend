@@ -10,21 +10,21 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-func CreateUsers(db *sqlx.DB) gin.HandlerFunc {
+func CreateTag(db *sqlx.DB) gin.HandlerFunc {
 	return gin.HandlerFunc(func(ctx *gin.Context) {
-		var dbUser db_repository.DbUser
+		var dbTag db_repository.DbTag
 
-		err := ctx.BindJSON(&dbUser)
+		err := ctx.BindJSON(&dbTag)
 
 		if err != nil {
 			response.Error(err.Error(), http.StatusBadRequest, ctx)
 		}
 
-		repo := db_repository.DbUsersRepository{
+		repo := db_repository.DbTagsRepository{
 			DB: db,
 		}
 
-		err = repo.Create(dbUser)
+		err = repo.Create(dbTag)
 
 		if err != nil {
 			response.Error(err.Error(), http.StatusInternalServerError, ctx)

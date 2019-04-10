@@ -110,3 +110,5 @@ fabric.properties
 .idea
 
 vendor
+
+glide.lock
