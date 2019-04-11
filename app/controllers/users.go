@@ -28,11 +28,6 @@ func CreateUsers(db *sqlx.DB) gin.HandlerFunc {
 			Result: "Created",
 		}
 
-		ctx.Writer.Header().Add("Access-Control-Allow-Origin", "*")
-		ctx.Writer.Header().Add("Access-Control-Allow-Methods", "POST")
-		ctx.Writer.Header().Add("Access-Control-Allow-Methods", "OPTION")
-		ctx.Writer.Header().Add("Content-Type", "application/json")
-
 		ctx.JSON(http.StatusOK, resp)
 	})
 }

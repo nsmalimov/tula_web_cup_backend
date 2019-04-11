@@ -11,6 +11,7 @@ import (
 	"tula_web_cup_backend/helper"
 
 	"github.com/gin-gonic/gin"
+	cors "github.com/rs/cors/wrapper/gin"
 )
 
 func main() {
@@ -33,6 +34,8 @@ func main() {
 		log.Println(err)
 		return
 	}
+
+	router.Use(cors.Default())
 
 	router.GET("/ping", controllers.Ping)
 
