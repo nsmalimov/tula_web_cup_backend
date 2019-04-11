@@ -79,6 +79,7 @@ func main() {
 
 	if err != nil {
 		log.Println(err)
+		return
 	}
 
 	err = CreateNeededTable(dbConnect)
