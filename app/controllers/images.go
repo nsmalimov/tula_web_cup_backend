@@ -1,51 +1,87 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
-	"strconv"
-	"tula_web_cup_backend/repositories/db_repository"
-
 	"tula_web_cup_backend/app/response"
-	"tula_web_cup_backend/repositories"
+	"tula_web_cup_backend/repositories/db_repository"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
 )
 
 type ImagesUpdateRequest struct {
-	ImageUrls []string `json:"images_url"`
+	DbImages []db_repository.DbImage `json:"images"`
 }
 
-func ImagesUpdate(db *sqlx.DB) gin.HandlerFunc {
+func UpdateImages(db *sqlx.DB) gin.HandlerFunc {
 	return gin.HandlerFunc(func(ctx *gin.Context) {
 		var imagesUpdateRequest ImagesUpdateRequest
 
-		userToken, err := strconv.Atoi(ctx.Param("user_token"))
+		// todo: сделать на джоинах для практики
+		userToken := ctx.Param("user_token")
+
+		fmt.Println(userToken)
+
+		err := ctx.BindJSON(&imagesUpdateRequest)
+
+		fmt.Println(imagesUpdateRequest)
 
 		if err != nil {
 			response.Error(err.Error(), http.StatusBadRequest, ctx)
+			return
 		}
 
-		err = ctx.BindJSON(&imagesUpdateRequest)
-
-		if err != nil {
-			response.Error(err.Error(), http.StatusBadRequest, ctx)
-		}
-
-		repo := repositories.MainDbRepository{
+		repo := db_repository.DbImagesRepository{
 			DB: db,
 		}
 
-		err = repo.GetImagesByUserToken(dbUser)
+		resp := response.Response{
+			Result: "All actual",
+		}
+
+		imagesByUserToken, err := repo.GetImagesByUserToken(userToken)
+
+		imagesByUserTokenMap := make(map[string]db_repository.DbImage)
+
+		for _, dbImageFromDb := range imagesByUserToken {
+			imagesByUserTokenMap[dbImageFromDb.ImageUrl] = dbImageFromDb
+		}
+
+		if err != nil {
+			response.Error(err.Error(), http.StatusInternalServerError, ctx)
+			return
+		}
 
 		// проверка, удаление и добавление
 
-		if err != nil {
-			response.Error(err, http.StatusInternalServerError, ctx)
+		var imagesNeedCreate []db_repository.DbImage
+
+		for _, dbImageFromRequest := range imagesUpdateRequest.DbImages {
+			if _, ok := imagesByUserTokenMap[dbImageFromRequest.ImageUrl]; ok {
+
+			} else {
+				imagesNeedCreate = append(imagesNeedCreate, db_repository.DbImage{
+					ImageUrl:  dbImageFromRequest.ImageUrl,
+					ImageName: dbImageFromRequest.ImageName,
+					UserToken: userToken,
+
+					// todo: разобрться как сделать без 0
+					Rate: -1,
+				})
+			}
+
 		}
 
-		resp := response.Response{
-			Result: "Created",
+		if len(imagesNeedCreate) != 0 {
+			err = repo.InsertMany(imagesNeedCreate)
+
+			if err != nil {
+				response.Error(err.Error(), http.StatusInternalServerError, ctx)
+				return
+			}
+
+			resp.Result = "Updated"
 		}
 
 		ctx.JSON(http.StatusOK, resp)

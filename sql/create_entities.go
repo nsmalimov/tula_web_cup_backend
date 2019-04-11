@@ -27,8 +27,7 @@ func CreateNeededTable(db *sqlx.DB) error {
 	sqlCode = `
 	create table users
 	(
-    	id         serial primary key,
-    	user_token varchar unique not null
+    	token varchar primary key
 	);`
 	_, err = db.Exec(sqlCode)
 
@@ -41,8 +40,8 @@ func CreateNeededTable(db *sqlx.DB) error {
 	(
     	id         serial primary key,
 		image_url  varchar unique not null,
-		name       varchar not null,
-    	user_id    int references users (id),
+		image_name varchar not null,
+    	user_token varchar references users (token),
     	rate       float
 	);`
 	_, err = db.Exec(sqlCode)

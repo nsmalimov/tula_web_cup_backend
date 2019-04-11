@@ -29,16 +29,21 @@ func main() {
 
 	psqlDbConnect, err := helper.ConnectToPsqlDb(configApp)
 
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
 	router.GET("/ping", controllers.Ping)
 
 	// todo: PUT, DELETE
-	router.POST("/users", controllers.CreateUsers(psqlDbConnect))
+	router.POST("/users/:user_token", controllers.CreateUsers(psqlDbConnect))
 
 	// todo: PUT, DELETE
 	router.POST("/tags", controllers.CreateTag(psqlDbConnect))
 
 	// приходит юзер, мы апдейтим базу, забираем все его картинки (много)
-	router.POST("/images/:user_token", controllers.ImagesUpdate(psqlDbConnect))
+	router.PUT("/images/:user_token", controllers.UpdateImages(psqlDbConnect))
 
 	// оценить картинку image_id=int rate=float
 	router.GET("/rate", controllers.RateImage(psqlDbConnect))
@@ -48,14 +53,14 @@ func main() {
 
 	// todo: забрать все картинки только юзера
 
-	router.GET("/images", controllers.ImagesUpdate(psqlDbConnect))
+	//router.GET("/images", controllers.ImagesUpdate(psqlDbConnect))
 
 	router.GET("/images/:tag_name", controllers.GetAllImagesByTag(psqlDbConnect))
 
 	// todo: сортировка по возрастанию
 
 	// name, rate
-	router.GET("/images/:sort_param", controllers.GetAllSortedImages(psqlDbConnect))
+	router.GET("/images_sort/:sort_param", controllers.GetAllSortedImages(psqlDbConnect))
 
 	portStart := configApp.PortStart
 
