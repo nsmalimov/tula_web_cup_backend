@@ -1,27 +1,46 @@
 package db_repository
 
-import "github.com/jmoiron/sqlx"
+import (
+	"github.com/jmoiron/sqlx"
+)
 
 type DbImage struct {
 	Id        int64   `json:"id" db:"id"`
-	ImageUrl  string  `json:"images_url" db:"image_url"`
+	ImageUrl  string  `json:"image_url" db:"image_url"`
 	ImageName string  `json:"image_name" db:"image_name"`
 	UserToken string  `json:"user_token" db:"user_token"`
-	Rate      float64 `json:"rate,omitempty" db:"rate"`
+	Tags      []DbTag `json:"tags"`
+
+	// todo: omitempty разобраться
+	Rate float64 `json:"rate" db:"rate"`
 }
 
 type DbImagesRepository struct {
 	DB *sqlx.DB
 }
 
-func (b *DbImagesRepository) GetAll() (result []DbImage, err error) {
-	err = b.DB.Select(&result, `SELECT * FROM images`)
+func (b *DbImagesRepository) GetAll() ([]DbImage, error) {
+	var dbImages []DbImage
+
+	err := b.DB.Select(&dbImages, `SELECT * FROM images;`)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return
+	return dbImages, nil
+}
+
+func (b *DbImagesRepository) GetImageById(imageId int64) (*DbImage, error) {
+	var image DbImage
+
+	err := b.DB.Get(&image, `SELECT * FROM images WHERE id = $1;`, imageId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &image, nil
 }
 
 func (b *DbImagesRepository) GetImagesByUserToken(userToken string) ([]DbImage, error) {
@@ -31,7 +50,7 @@ func (b *DbImagesRepository) GetImagesByUserToken(userToken string) ([]DbImage, 
 
 	query := `SELECT * FROM images WHERE user_token = $1`
 
-	err := b.DB.Get(dbImages, query, userToken)
+	err := b.DB.Select(&dbImages, query, userToken)
 
 	if err != nil {
 		return nil, err
@@ -59,8 +78,8 @@ func (b *DbImagesRepository) InsertMany(dbImages []DbImage) error {
 
 	for _, dbImage := range dbImages {
 		_, err := tx.NamedExec("INSERT INTO images "+
-			"(image_url, image_name, user_id, rate) VALUES "+
-			"(:image_url, :image_name, :user_id, :rate)",
+			"(image_url, image_name, user_token, rate) VALUES "+
+			"(:image_url, :image_name, :user_token, :rate)",
 			&dbImage)
 
 		if err != nil {

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
 
 	"tula_web_cup_backend/app/response"
@@ -13,6 +14,8 @@ import (
 func CreateTag(db *sqlx.DB) gin.HandlerFunc {
 	return gin.HandlerFunc(func(ctx *gin.Context) {
 		var dbTag db_repository.DbTag
+
+		log.Println("Request to create tag")
 
 		err := ctx.BindJSON(&dbTag)
 
