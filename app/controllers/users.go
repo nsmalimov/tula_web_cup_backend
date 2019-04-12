@@ -18,15 +18,28 @@ func CreateUsers(db *sqlx.DB) gin.HandlerFunc {
 			DB: db,
 		}
 
-		err := repo.Create(userToken)
+		resp := response.Response{
+			Result: "Created",
+		}
+
+		user, err := repo.GetUserByToken(userToken)
 
 		if err != nil {
 			response.Error(err.Error(), http.StatusInternalServerError, ctx)
 			return
 		}
 
-		resp := response.Response{
-			Result: "Created",
+		if user.Token != "" {
+			resp.Result = "Already exist"
+		} else {
+			err = repo.Create(userToken)
+
+			if err != nil {
+				response.Error(err.Error(), http.StatusInternalServerError, ctx)
+				return
+			}
+
+			resp.Result = "Created"
 		}
 
 		ctx.JSON(http.StatusOK, resp)

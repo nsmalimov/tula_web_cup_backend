@@ -24,12 +24,13 @@ func (b *DbUsersRepository) Create(userToken string) error {
 func (b *DbUsersRepository) GetUserByToken(userToken string) (*DbUser, error) {
 	var dbUser DbUser
 
-	query := `INSERT INTO users (token) VALUES ($1)`
+	query := `SELECT * FROM users WHERE token = $1`
 
-	err := b.DB.Get(dbUser, query, userToken)
+	err := b.DB.Get(&dbUser, query, userToken)
 
 	if err != nil {
 		log.Println(err)
+		return &dbUser, nil
 	}
 
 	return &dbUser, err

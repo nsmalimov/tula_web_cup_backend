@@ -49,7 +49,7 @@ func main() {
 
 	// приходит юзер, мы апдейтим базу, забираем все его картинки (много)
 	// +
-	router.PUT("/images/:user_token", controllers.UpdateImages(psqlDbConnect))
+	router.POST("/images/:user_token", controllers.UpdateImages(psqlDbConnect))
 
 	// оценить картинку image_id=int rate=float
 	router.GET("/rate", controllers.RateImage(psqlDbConnect))

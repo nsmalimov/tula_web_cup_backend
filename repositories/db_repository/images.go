@@ -5,11 +5,12 @@ import (
 )
 
 type DbImage struct {
-	Id        int64   `json:"id" db:"id"`
-	ImageUrl  string  `json:"image_url" db:"image_url"`
-	ImageName string  `json:"image_name" db:"image_name"`
-	UserToken string  `json:"user_token" db:"user_token"`
-	Tags      []DbTag `json:"tags"`
+	Id         int64   `json:"id" db:"id"`
+	ImageUrl   string  `json:"image_url" db:"image_url"`
+	ImageName  string  `json:"image_name" db:"image_name"`
+	UserToken  string  `json:"user_token" db:"user_token"`
+	Tags       []DbTag `json:"tags"`
+	ResourceId string  `json:"resource_id" db:"resource_id"`
 
 	// todo: omitempty разобраться
 	Rate float64 `json:"rate" db:"rate"`
@@ -78,8 +79,8 @@ func (b *DbImagesRepository) InsertMany(dbImages []DbImage) error {
 
 	for _, dbImage := range dbImages {
 		_, err := tx.NamedExec("INSERT INTO images "+
-			"(image_url, image_name, user_token, rate) VALUES "+
-			"(:image_url, :image_name, :user_token, :rate)",
+			"(image_url, image_name, user_token, rate, resource_id) VALUES "+
+			"(:image_url, :image_name, :user_token, :rate, :resource_id)",
 			&dbImage)
 
 		if err != nil {

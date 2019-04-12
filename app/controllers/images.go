@@ -48,7 +48,7 @@ func UpdateImages(db *sqlx.DB) gin.HandlerFunc {
 		imagesByUserTokenMap := make(map[string]db_repository.DbImage)
 
 		for _, imageByUserToken := range imagesByUserToken {
-			imagesByUserTokenMap[imageByUserToken.ImageUrl] = imageByUserToken
+			imagesByUserTokenMap[imageByUserToken.ResourceId] = imageByUserToken
 		}
 
 		if err != nil {
@@ -61,13 +61,14 @@ func UpdateImages(db *sqlx.DB) gin.HandlerFunc {
 		var imagesNeedCreate []db_repository.DbImage
 
 		for _, dbImageFromRequest := range imagesUpdateRequest.DbImages {
-			if _, ok := imagesByUserTokenMap[dbImageFromRequest.ImageUrl]; ok {
+			if _, ok := imagesByUserTokenMap[dbImageFromRequest.ResourceId]; ok {
 				// image есть в базе, проверка на апдейт
 			} else {
 				imagesNeedCreate = append(imagesNeedCreate, db_repository.DbImage{
-					ImageUrl:  dbImageFromRequest.ImageUrl,
-					ImageName: dbImageFromRequest.ImageName,
-					UserToken: userToken,
+					ImageUrl:   dbImageFromRequest.ImageUrl,
+					ImageName:  dbImageFromRequest.ImageName,
+					UserToken:  userToken,
+					ResourceId: dbImageFromRequest.ResourceId,
 
 					// todo: разобрться как сделать без 0
 					Rate: -1,

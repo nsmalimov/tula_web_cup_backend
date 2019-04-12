@@ -38,11 +38,12 @@ func CreateNeededTable(db *sqlx.DB) error {
 	sqlCode = `
 	create table images
 	(
-    	id         serial primary key,
-		image_url  varchar unique not null,
-		image_name varchar not null,
-    	user_token varchar references users (token),
-    	rate       float
+    	id          serial primary key,
+		image_url   varchar unique not null,
+		image_name  varchar not null,
+    	user_token  varchar references users (token),
+    	resource_id varchar unique not null,
+    	rate        float
 	);`
 	_, err = db.Exec(sqlCode)
 
