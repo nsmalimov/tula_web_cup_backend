@@ -95,3 +95,19 @@ func (b *DbImagesRepository) InsertMany(dbImages []DbImage) error {
 
 	return err
 }
+
+func (b *DbImagesRepository) DeleteByimageIds(dbImageIds []int64) error {
+	tx := b.DB.MustBegin()
+
+	for _, dbImageId := range dbImageIds {
+		_ = tx.MustExec(`DELETE FROM images WHERE id=$1`, &dbImageId)
+	}
+
+	err := tx.Commit()
+
+	if err != nil {
+		return err
+	}
+
+	return err
+}

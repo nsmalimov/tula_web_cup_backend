@@ -56,6 +56,8 @@ func main() {
 
 	// забрать все картинки (общие)
 	// +
+
+	// todo: подумать, возможен ли апдейт
 	router.GET("/images", controllers.GetAllImages(psqlDbConnect))
 
 	// todo: забрать все картинки только юзера

@@ -51,13 +51,18 @@ func UpdateImages(db *sqlx.DB) gin.HandlerFunc {
 			imagesByUserTokenMap[imageByUserToken.ResourceId] = imageByUserToken
 		}
 
+		imagesUpdateRequestMap := make(map[string]db_repository.DbImage)
+
+		for _, imageUpdateRequest := range imagesUpdateRequest.DbImages {
+			imagesUpdateRequestMap[imageUpdateRequest.ResourceId] = imageUpdateRequest
+		}
+
 		if err != nil {
 			response.Error(err.Error(), http.StatusInternalServerError, ctx)
 			return
 		}
 
-		// проверка, удаление и добавление
-
+		// ------ добавление
 		var imagesNeedCreate []db_repository.DbImage
 
 		for _, dbImageFromRequest := range imagesUpdateRequest.DbImages {
@@ -87,6 +92,26 @@ func UpdateImages(db *sqlx.DB) gin.HandlerFunc {
 			}
 
 			resp.Result = "Updated"
+		}
+
+		// ------ удаление
+		var imageIdsNeedDelete []int64
+
+		for _, imageByUserToken := range imagesByUserToken {
+			if _, ok := imagesUpdateRequestMap[imageByUserToken.ResourceId]; ok {
+				// pass
+			} else {
+				imageIdsNeedDelete = append(imageIdsNeedDelete, imageByUserToken.Id)
+			}
+		}
+
+		log.Printf("imageIdsNeedDelete num: %d", len(imageIdsNeedDelete))
+
+		err = repo.DeleteByimageIds(imageIdsNeedDelete)
+
+		if err != nil {
+			response.Error(err.Error(), http.StatusInternalServerError, ctx)
+			return
 		}
 
 		ctx.JSON(http.StatusOK, resp)
