@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -17,6 +18,8 @@ type ImagesUpdateRequest struct {
 
 func UpdateImages(db *sqlx.DB) gin.HandlerFunc {
 	return gin.HandlerFunc(func(ctx *gin.Context) {
+		log.Println("Request: UpdateImages")
+
 		var imagesUpdateRequest ImagesUpdateRequest
 
 		// todo: сделать на джоинах для практики
@@ -26,14 +29,15 @@ func UpdateImages(db *sqlx.DB) gin.HandlerFunc {
 
 		err := ctx.BindJSON(&imagesUpdateRequest)
 
-		log.Printf("request need update images num: %d", len(imagesUpdateRequest.DbImages))
-
 		if err != nil {
-			response.Error(err.Error(), http.StatusBadRequest, ctx)
+			s := fmt.Sprintf("Error when try ctx.BindJSON, err: %s", err)
+			response.Error(s, http.StatusBadRequest, ctx)
 			return
 		}
 
-		repo := db_repository.DbImagesRepository{
+		log.Printf("request need update images num: %d", len(imagesUpdateRequest.DbImages))
+
+		repoImages := db_repository.DbImagesRepository{
 			DB: db,
 		}
 
@@ -41,7 +45,13 @@ func UpdateImages(db *sqlx.DB) gin.HandlerFunc {
 			Result: "All actual",
 		}
 
-		imagesByUserToken, err := repo.GetImagesByUserToken(userToken)
+		imagesByUserToken, err := repoImages.GetImagesByUserToken(userToken)
+
+		if err != nil {
+			s := fmt.Sprintf("Error when try repoImages.GetImagesByUserToken, err: %s", err)
+			response.Error(s, http.StatusInternalServerError, ctx)
+			return
+		}
 
 		log.Printf("images exist by user: %d", len(imagesByUserToken))
 
@@ -55,11 +65,6 @@ func UpdateImages(db *sqlx.DB) gin.HandlerFunc {
 
 		for _, imageUpdateRequest := range imagesUpdateRequest.DbImages {
 			imagesUpdateRequestMap[imageUpdateRequest.ResourceId] = imageUpdateRequest
-		}
-
-		if err != nil {
-			response.Error(err.Error(), http.StatusInternalServerError, ctx)
-			return
 		}
 
 		// ------ добавление
@@ -83,11 +88,29 @@ func UpdateImages(db *sqlx.DB) gin.HandlerFunc {
 
 		log.Printf("imagesNeedCreate num: %d", len(imagesNeedCreate))
 
-		if len(imagesNeedCreate) != 0 {
-			err = repo.InsertMany(imagesNeedCreate)
+		repoUsers := db_repository.DbUsersRepository{
+			DB: db,
+		}
+
+		user := repoUsers.GetUserByToken(userToken)
+
+		if user.Token == "" {
+			fmt.Printf("User not exist, will create, %s\n", userToken)
+			err = repoUsers.Create(userToken)
 
 			if err != nil {
-				response.Error(err.Error(), http.StatusInternalServerError, ctx)
+				s := fmt.Sprintf("Error when try repoUsers.Create, err: %s", err)
+				response.Error(s, http.StatusInternalServerError, ctx)
+				return
+			}
+		}
+
+		if len(imagesNeedCreate) != 0 {
+			err = repoImages.InsertMany(imagesNeedCreate)
+
+			if err != nil {
+				s := fmt.Sprintf("Error when try repoImages.InsertMany, err: %s", err)
+				response.Error(s, http.StatusInternalServerError, ctx)
 				return
 			}
 
@@ -107,10 +130,11 @@ func UpdateImages(db *sqlx.DB) gin.HandlerFunc {
 
 		log.Printf("imageIdsNeedDelete num: %d", len(imageIdsNeedDelete))
 
-		err = repo.DeleteByimageIds(imageIdsNeedDelete)
+		err = repoImages.DeleteByimageIds(imageIdsNeedDelete)
 
 		if err != nil {
-			response.Error(err.Error(), http.StatusInternalServerError, ctx)
+			s := fmt.Sprintf("Error when try repoImages.DeleteByimageIds, err: %s", err)
+			response.Error(s, http.StatusInternalServerError, ctx)
 			return
 		}
 
@@ -126,7 +150,7 @@ func RateImage(db *sqlx.DB) gin.HandlerFunc {
 
 func GetAllImages(db *sqlx.DB) gin.HandlerFunc {
 	return gin.HandlerFunc(func(ctx *gin.Context) {
-		log.Println("Request to get all images")
+		log.Println("Request: GetAllImages")
 
 		repo := db_repository.DbImagesRepository{
 			DB: db,

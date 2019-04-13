@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
 
 	"tula_web_cup_backend/app/response"
@@ -12,34 +13,29 @@ import (
 
 func CreateUsers(db *sqlx.DB) gin.HandlerFunc {
 	return gin.HandlerFunc(func(ctx *gin.Context) {
+		log.Println("Request: CreateUsers")
+
 		userToken := ctx.Param("user_token")
 
 		repo := db_repository.DbUsersRepository{
 			DB: db,
 		}
 
-		resp := response.Response{
-			Result: "Created",
-		}
+		resp := response.Response{}
 
-		user, err := repo.GetUserByToken(userToken)
-
-		if err != nil {
-			response.Error(err.Error(), http.StatusInternalServerError, ctx)
-			return
-		}
+		user := repo.GetUserByToken(userToken)
 
 		if user.Token != "" {
-			resp.Result = "Already exist"
+			resp.Result = "User in db already exist"
 		} else {
-			err = repo.Create(userToken)
+			err := repo.Create(userToken)
 
 			if err != nil {
 				response.Error(err.Error(), http.StatusInternalServerError, ctx)
 				return
 			}
 
-			resp.Result = "Created"
+			resp.Result = "User in db created"
 		}
 
 		ctx.JSON(http.StatusOK, resp)
