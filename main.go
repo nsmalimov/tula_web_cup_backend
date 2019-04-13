@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"math/rand"
@@ -19,7 +20,11 @@ func main() {
 
 	router := gin.New()
 
-	configApp, err := config.GetConfig()
+	configDir := flag.String("config_dir", "eee", "config path")
+
+	flag.Parse()
+
+	configApp, err := config.GetConfig(*configDir)
 
 	if err != nil {
 		log.Println(err)

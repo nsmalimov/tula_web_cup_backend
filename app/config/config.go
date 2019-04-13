@@ -17,10 +17,16 @@ type Configuration struct {
 	DatabaseName string `json:"database_name" yaml:"database_name"`
 }
 
-func GetConfig() (*Configuration, error) {
+func GetConfig(configDir string) (*Configuration, error) {
 	var err error
+	var filename string
 
-	filename, _ := filepath.Abs("config.yaml")
+	if configDir != "" {
+		filename, _ = filepath.Abs(configDir)
+	} else {
+		filename, _ = filepath.Abs("config.yaml")
+	}
+
 	yamlFile, err := ioutil.ReadFile(filename)
 
 	if err != nil {
