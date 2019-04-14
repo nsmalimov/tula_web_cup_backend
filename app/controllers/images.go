@@ -130,10 +130,31 @@ func UpdateImages(db *sqlx.DB) gin.HandlerFunc {
 
 		log.Printf("imageIdsNeedDelete num: %d", len(imageIdsNeedDelete))
 
-		err = repoImages.DeleteByimageIds(imageIdsNeedDelete)
+		err = repoImages.DeleteByImageIds(imageIdsNeedDelete)
 
 		if err != nil {
-			s := fmt.Sprintf("Error when try repoImages.DeleteByimageIds, err: %s", err)
+			s := fmt.Sprintf("Error when try repoImages.DeleteByImageIds, err: %s", err)
+			response.Error(s, http.StatusInternalServerError, ctx)
+			return
+		}
+
+		var imageIdsNeedUpdate []db_repository.DbImage
+
+		for _, imageByUserToken := range imagesByUserToken {
+			if imageByRequest, ok := imagesUpdateRequestMap[imageByUserToken.ResourceId]; ok {
+				if imageByUserToken.ImageUrl != imageByRequest.ImageUrl {
+					imageByUserToken.ImageUrl = imageByRequest.ImageUrl
+					imageIdsNeedUpdate = append(imageIdsNeedUpdate, imageByUserToken)
+				}
+			}
+		}
+
+		log.Printf("imageIdsNeedUpdate num: %d", len(imageIdsNeedUpdate))
+
+		err = repoImages.UpdateMany(imageIdsNeedUpdate)
+
+		if err != nil {
+			s := fmt.Sprintf("Error when try repoImages.UpdateMany, err: %s", err)
 			response.Error(s, http.StatusInternalServerError, ctx)
 			return
 		}

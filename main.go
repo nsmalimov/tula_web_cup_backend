@@ -20,7 +20,7 @@ func main() {
 
 	router := gin.New()
 
-	configDir := flag.String("config_dir", "eee", "config path")
+	configDir := flag.String("config_dir", "", "config path")
 
 	flag.Parse()
 
