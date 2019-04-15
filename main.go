@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"net/http"
 	"time"
-
-	"tula_web_cup_backend/app/config"
-	"tula_web_cup_backend/app/controllers"
-	"tula_web_cup_backend/helper"
+	"tula_web_cup_backend/helpers"
 
 	"github.com/gin-gonic/gin"
 	cors "github.com/rs/cors/wrapper/gin"
+	"tula_web_cup_backend/app/config"
+	"tula_web_cup_backend/app/controllers"
 )
 
 func main() {
@@ -33,12 +33,14 @@ func main() {
 
 	// todo: защитить ручки от неавторизованного удаления (токен доступа?)
 
-	psqlDbConnect, err := helper.ConnectToPsqlDb(configApp)
+	psqlDbConnect, err := helpers.ConnectToPsqlDb(configApp)
 
 	if err != nil {
 		log.Println(err)
 		return
 	}
+
+	httpClient := &http.Client{}
 
 	router.Use(cors.Default())
 
@@ -55,6 +57,8 @@ func main() {
 	// приходит юзер, мы апдейтим базу, забираем все его картинки (много)
 	// +
 	router.POST("/images/:user_token", controllers.UpdateImages(psqlDbConnect))
+
+	router.GET("/images_update_urls", controllers.UpdateImageUrls(psqlDbConnect, httpClient))
 
 	// оценить картинку image_id=int rate=float
 	router.GET("/rate", controllers.RateImage(psqlDbConnect))

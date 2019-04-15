@@ -3,11 +3,9 @@ package main
 import (
 	"log"
 
-	"tula_web_cup_backend/app/config"
-	"tula_web_cup_backend/helper"
-
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	"tula_web_cup_backend/app/config"
 )
 
 func CreateNeededTable(db *sqlx.DB) error {
@@ -75,7 +73,7 @@ func main() {
 		return
 	}
 
-	dbConnect, err := helper.ConnectToPsqlDb(configApp)
+	dbConnect, err := helpers.ConnectToPsqlDb(configApp)
 
 	if err != nil {
 		log.Println(err)

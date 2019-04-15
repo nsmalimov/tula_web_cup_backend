@@ -2,6 +2,8 @@ package db_repository
 
 import (
 	"github.com/jmoiron/sqlx"
+
+	"tula_web_cup_backend/helpers"
 )
 
 type DbImage struct {
@@ -112,7 +114,7 @@ func (b *DbImagesRepository) DeleteByImageIds(dbImageIds []int64) error {
 	return err
 }
 
-func (b *DbImagesRepository) UpdateMany(dbImages []DbImage) error {
+func (b *DbImagesRepository) UpdateManyByImageId(dbImages []DbImage) error {
 	tx := b.DB.MustBegin()
 
 	for _, dbImage := range dbImages {
@@ -120,6 +122,28 @@ func (b *DbImagesRepository) UpdateMany(dbImages []DbImage) error {
 			"SET image_url=:image_url "+
 			"WHERE id=:id",
 			&dbImage)
+
+		if err != nil {
+			return err
+		}
+	}
+	err := tx.Commit()
+
+	if err != nil {
+		return err
+	}
+
+	return err
+}
+
+func (b *DbImagesRepository) UpdateManyByResourceId(itemStructs []helpers.ItemsStruct) error {
+	tx := b.DB.MustBegin()
+
+	for _, itemStruct := range itemStructs {
+		_, err := tx.NamedExec("UPDATE images "+
+			"SET image_url=:image_url "+
+			"WHERE resource_id=:resource_id",
+			&itemStruct)
 
 		if err != nil {
 			return err

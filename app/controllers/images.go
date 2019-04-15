@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"tula_web_cup_backend/helpers"
 
 	"tula_web_cup_backend/app/response"
 	"tula_web_cup_backend/repositories/db_repository"
@@ -151,10 +152,10 @@ func UpdateImages(db *sqlx.DB) gin.HandlerFunc {
 
 		log.Printf("imageIdsNeedUpdate num: %d", len(imageIdsNeedUpdate))
 
-		err = repoImages.UpdateMany(imageIdsNeedUpdate)
+		err = repoImages.UpdateManyByImageId(imageIdsNeedUpdate)
 
 		if err != nil {
-			s := fmt.Sprintf("Error when try repoImages.UpdateMany, err: %s", err)
+			s := fmt.Sprintf("Error when try repoImages.UpdateManyByImageId, err: %s", err)
 			response.Error(s, http.StatusInternalServerError, ctx)
 			return
 		}
@@ -272,6 +273,56 @@ func GetAllSortedImages(db *sqlx.DB) gin.HandlerFunc {
 
 		resp := response.Response{
 			Result: images,
+		}
+
+		ctx.JSON(http.StatusOK, resp)
+	})
+}
+
+func UpdateImageUrls(db *sqlx.DB, client *http.Client) gin.HandlerFunc {
+	return gin.HandlerFunc(func(ctx *gin.Context) {
+		repo := db_repository.DbImagesRepository{
+			DB: db,
+		}
+
+		allImages, err := repo.GetAll()
+
+		if err != nil {
+			response.Error(err.Error(), http.StatusInternalServerError, ctx)
+		}
+
+		resp := response.Response{
+			Result: "Urls was updated",
+		}
+
+		usersMap := make(map[string]string)
+
+		for _, image := range allImages {
+			usersMap[image.UserToken] = ""
+		}
+
+		log.Printf("Count users: %d\n", len(usersMap))
+
+		for _, image := range allImages {
+			usersMap[image.UserToken] = ""
+		}
+
+		for k, _ := range usersMap {
+			imagesByUser, err := helpers.GetImagesFromUserAppFolder(k, client)
+
+			if err != nil {
+				log.Printf("Error when try helpers.GetImagesFromUserAppFolder, err: %s", err)
+				continue
+			}
+
+			log.Printf("User %s, count images: %d\n", k, len(imagesByUser))
+
+			err = repo.UpdateManyByResourceId(imagesByUser)
+
+			if err != nil {
+				log.Printf("Error when try repo.UpdateManyByImageId, err: %s", err)
+				continue
+			}
 		}
 
 		ctx.JSON(http.StatusOK, resp)
