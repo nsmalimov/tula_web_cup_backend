@@ -1,9 +1,12 @@
 package db_repository
 
 import (
-	"github.com/jmoiron/sqlx"
+	"fmt"
+	"strings"
 
 	"tula_web_cup_backend/helpers"
+
+	"github.com/jmoiron/sqlx"
 )
 
 type DbImage struct {
@@ -65,9 +68,11 @@ func (b *DbImagesRepository) GetImagesByUserToken(userToken string) ([]DbImage, 
 func (b *DbImagesRepository) GetAllSortedImages(sortParam string) (*[]DbImage, error) {
 	var dbImages []DbImage
 
-	query := `SELECT * FROM images ORDER BY $1 DESC'`
+	sortParamSplitted := strings.Split(sortParam, ",")
 
-	err := b.DB.Get(dbImages, query, sortParam)
+	qtext := fmt.Sprintf("SELECT * FROM images ORDER BY %s %s", sortParamSplitted[0], sortParamSplitted[1])
+
+	err := b.DB.Select(&dbImages, qtext)
 
 	if err != nil {
 		return nil, err

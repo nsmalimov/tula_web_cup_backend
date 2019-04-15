@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"tula_web_cup_backend/helpers"
 
 	"tula_web_cup_backend/app/response"
+	"tula_web_cup_backend/helpers"
 	"tula_web_cup_backend/repositories/db_repository"
 
 	"github.com/gin-gonic/gin"
@@ -198,6 +198,7 @@ func GetAllImages(db *sqlx.DB) gin.HandlerFunc {
 
 		if err != nil {
 			response.Error(err.Error(), http.StatusInternalServerError, ctx)
+			return
 		}
 
 		resp := response.Response{
@@ -222,6 +223,7 @@ func GetAllImagesByTag(db *sqlx.DB) gin.HandlerFunc {
 
 		if err != nil {
 			response.Error(err.Error(), http.StatusInternalServerError, ctx)
+			return
 		}
 
 		repoImages := db_repository.DbImagesRepository{
@@ -257,8 +259,11 @@ func GetAllSortedImages(db *sqlx.DB) gin.HandlerFunc {
 	return gin.HandlerFunc(func(ctx *gin.Context) {
 		sortParam := ctx.Param("sort_param")
 
-		if sortParam == "" || (sortParam != "name" && sortParam != "rate") {
-			response.Error("Sort param empty or not one of (name, rate)", http.StatusBadRequest, ctx)
+		if sortParam == "" || (sortParam != "image_name,ASC" && sortParam != "image_name,DESC" &&
+			sortParam != "rate,ASC" && sortParam != "rate,DESC") {
+			response.Error("Sort param empty or not one of (image_name,ASC, image_name,DESC,"+
+				" rate,ASC, rate,DESC)", http.StatusBadRequest, ctx)
+			return
 		}
 
 		repo := db_repository.DbImagesRepository{
@@ -269,6 +274,7 @@ func GetAllSortedImages(db *sqlx.DB) gin.HandlerFunc {
 
 		if err != nil {
 			response.Error(err.Error(), http.StatusInternalServerError, ctx)
+			return
 		}
 
 		resp := response.Response{
@@ -289,6 +295,7 @@ func UpdateImageUrls(db *sqlx.DB, client *http.Client) gin.HandlerFunc {
 
 		if err != nil {
 			response.Error(err.Error(), http.StatusInternalServerError, ctx)
+			return
 		}
 
 		resp := response.Response{

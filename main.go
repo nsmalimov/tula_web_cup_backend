@@ -7,12 +7,13 @@ import (
 	"math/rand"
 	"net/http"
 	"time"
+
+	"tula_web_cup_backend/app/config"
+	"tula_web_cup_backend/app/controllers"
 	"tula_web_cup_backend/helpers"
 
 	"github.com/gin-gonic/gin"
 	cors "github.com/rs/cors/wrapper/gin"
-	"tula_web_cup_backend/app/config"
-	"tula_web_cup_backend/app/controllers"
 )
 
 func main() {
@@ -78,6 +79,7 @@ func main() {
 	// todo: сортировка по возрастанию
 
 	// name, rate
+	// +
 	router.GET("/images_sort/:sort_param", controllers.GetAllSortedImages(psqlDbConnect))
 
 	portStart := configApp.PortStart
